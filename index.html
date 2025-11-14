@@ -4,11 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Crypto Futures Risk Calculator</title>
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="theme-color" content="#0f172a">
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎯</text></svg>">
-    
     <style>
         :root {
             --primary: #2563eb;
@@ -23,86 +18,80 @@
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent;
         }
         
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #0f172a, #1e293b);
             color: var(--light);
             min-height: 100vh;
-            padding: 15px;
-            line-height: 1.5;
+            padding: 20px;
         }
         
         .container {
-            max-width: 100%;
+            max-width: 1200px;
             margin: 0 auto;
         }
         
         .header {
             text-align: center;
-            margin-bottom: 25px;
-            padding-top: env(safe-area-inset-top);
+            margin-bottom: 30px;
         }
         
         .header h1 {
-            font-size: 1.8rem;
+            font-size: 2.5rem;
             background: linear-gradient(45deg, #60a5fa, #34d399);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            margin-bottom: 8px;
-        }
-        
-        .header p {
-            color: #94a3b8;
-            font-size: 0.9rem;
+            margin-bottom: 10px;
         }
         
         .calculator-grid {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-            margin-bottom: 25px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        
+        @media (max-width: 768px) {
+            .calculator-grid {
+                grid-template-columns: 1fr;
+            }
         }
         
         .card {
-            background: rgba(30, 41, 59, 0.95);
-            border-radius: 12px;
-            padding: 20px;
+            background: rgba(30, 41, 59, 0.8);
+            border-radius: 15px;
+            padding: 25px;
             border: 1px solid rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(10px);
         }
         
         .card h2 {
             color: #60a5fa;
-            margin-bottom: 18px;
-            font-size: 1.3rem;
-            display: flex;
-            align-items: center;
-            gap: 8px;
+            margin-bottom: 20px;
+            font-size: 1.4rem;
         }
         
         .input-group {
-            margin-bottom: 18px;
+            margin-bottom: 20px;
         }
         
         .input-group label {
             display: block;
-            margin-bottom: 6px;
+            margin-bottom: 8px;
             font-weight: 500;
             color: #cbd5e1;
-            font-size: 14px;
         }
         
         .input-group input, .input-group select {
             width: 100%;
-            padding: 14px 12px;
+            padding: 12px 15px;
             border: 1px solid #334155;
             border-radius: 8px;
             background: #1e293b;
             color: var(--light);
-            font-size: 16px; /* Prevent zoom on iOS */
+            font-size: 1rem;
             transition: all 0.3s ease;
         }
         
@@ -114,80 +103,71 @@
         
         .tp-section {
             background: rgba(255, 255, 255, 0.05);
-            padding: 12px;
+            padding: 15px;
             border-radius: 8px;
-            margin-bottom: 12px;
+            margin-bottom: 15px;
         }
         
         .tp-row {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            margin-bottom: 15px;
-            padding-bottom: 15px;
-            border-bottom: 1px solid #334155;
-        }
-        
-        .tp-row:last-child {
-            border-bottom: none;
-            margin-bottom: 0;
-            padding-bottom: 0;
+            display: grid;
+            grid-template-columns: 1fr 1fr auto;
+            gap: 10px;
+            margin-bottom: 10px;
+            align-items: end;
         }
         
         .btn-add-tp {
             background: var(--primary);
             color: white;
             border: none;
-            padding: 12px 16px;
-            border-radius: 8px;
+            padding: 10px 15px;
+            border-radius: 5px;
             cursor: pointer;
-            font-size: 14px;
-            font-weight: 600;
-            width: 100%;
             margin-top: 10px;
+            width: 100%;
         }
         
         .btn-remove-tp {
             background: var(--danger);
             color: white;
             border: none;
-            padding: 10px 14px;
-            border-radius: 6px;
+            padding: 8px 12px;
+            border-radius: 5px;
             cursor: pointer;
-            font-size: 13px;
-            margin-top: 8px;
+            font-size: 0.8rem;
         }
         
         .percentage-display {
             color: #60a5fa;
             font-weight: 600;
-            margin-top: 4px;
-            font-size: 12px;
+            margin-top: 5px;
+            font-size: 0.9rem;
         }
         
         .btn-calculate {
             width: 100%;
-            padding: 16px;
+            padding: 15px;
             background: linear-gradient(45deg, var(--primary), #1d4ed8);
             color: white;
             border: none;
-            border-radius: 10px;
-            font-size: 16px;
+            border-radius: 8px;
+            font-size: 1.1rem;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
             margin-top: 10px;
         }
         
-        .btn-calculate:active {
-            transform: scale(0.98);
+        .btn-calculate:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(37, 99, 235, 0.3);
         }
         
         .result-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 14px 0;
+            padding: 15px 0;
             border-bottom: 1px solid #334155;
         }
         
@@ -197,57 +177,53 @@
         
         .result-label {
             color: #cbd5e1;
-            font-size: 14px;
         }
         
         .result-value {
             font-weight: 600;
-            font-size: 15px;
-            text-align: right;
+            font-size: 1.1rem;
         }
         
         .tp-result {
             background: rgba(255, 255, 255, 0.05);
-            padding: 12px;
-            border-radius: 8px;
-            margin: 8px 0;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 5px 0;
             border-left: 3px solid var(--success);
-            font-size: 13px;
         }
         
         .risk-meter {
-            height: 16px;
+            height: 20px;
             background: linear-gradient(90deg, var(--success), var(--warning), var(--danger));
-            border-radius: 8px;
-            margin: 18px 0;
+            border-radius: 10px;
+            margin: 20px 0;
             position: relative;
         }
         
         .risk-indicator {
             position: absolute;
-            top: -4px;
-            width: 3px;
-            height: 24px;
+            top: -5px;
+            width: 4px;
+            height: 30px;
             background: white;
             transform: translateX(-50%);
             transition: left 0.5s ease;
         }
         
         .safety-checks {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            margin-top: 18px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
         }
         
         .check-item {
             display: flex;
-            align-items: flex-start;
-            gap: 12px;
+            align-items: center;
+            gap: 10px;
             padding: 12px;
             background: rgba(255, 255, 255, 0.05);
             border-radius: 8px;
-            font-size: 14px;
         }
         
         .check-icon {
@@ -259,7 +235,6 @@
             justify-content: center;
             font-size: 12px;
             font-weight: bold;
-            flex-shrink: 0;
         }
         
         .check-valid {
@@ -269,75 +244,12 @@
         .check-invalid {
             background: var(--danger);
         }
-        
-        .calculation-steps {
-            background: rgba(255, 255, 255, 0.05);
-            padding: 15px;
-            border-radius: 8px;
-            margin-top: 18px;
-            font-size: 13px;
-        }
-        
-        .step {
-            margin-bottom: 8px;
-            color: #cbd5e1;
-        }
-        
-        .step-result {
-            color: #60a5fa;
-            font-weight: 600;
-        }
-        
-        /* Tablet */
-        @media (min-width: 768px) {
-            .calculator-grid {
-                display: grid;
-                grid-template-columns: 1fr 1fr;
-                gap: 25px;
-            }
-            
-            .tp-row {
-                flex-direction: row;
-                align-items: end;
-            }
-            
-            .tp-row > div {
-                flex: 1;
-            }
-            
-            .btn-remove-tp {
-                margin-top: 0;
-                align-self: center;
-            }
-        }
-        
-        /* Desktop */
-        @media (min-width: 1024px) {
-            .container {
-                max-width: 1200px;
-            }
-            
-            body {
-                padding: 25px;
-            }
-        }
-        
-        /* Very small phones */
-        @media (max-width: 360px) {
-            .card {
-                padding: 15px;
-            }
-            
-            .header h1 {
-                font-size: 1.6rem;
-            }
-        }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>🎯 Crypto Risk Calculator</h1>
+            <h1>🚀 Crypto Futures Risk Calculator</h1>
             <p>Professional Risk Management for Trading</p>
         </div>
         
@@ -370,7 +282,50 @@
                 <div class="input-group">
                     <label>Take Profit Targets</label>
                     <div class="tp-section" id="tpSection">
-                        <!-- TP rows will be generated by JavaScript -->
+                        <div class="tp-row">
+                            <div>
+                                <label>TP 1 Price</label>
+                                <input type="number" class="tp-price" value="41" min="0.0001" step="0.0001">
+                                <div class="percentage-display tp-gain">Gain: 3.27%</div>
+                            </div>
+                            <div>
+                                <label>TP 1 % Size</label>
+                                <input type="number" class="tp-percent" value="30" min="0" max="100" step="5">
+                            </div>
+                            <div>
+                                <button class="btn-remove-tp" onclick="removeTP(1)">Remove</button>
+                            </div>
+                        </div>
+                        
+                        <div class="tp-row">
+                            <div>
+                                <label>TP 2 Price</label>
+                                <input type="number" class="tp-price" value="42.5" min="0.0001" step="0.0001">
+                                <div class="percentage-display tp-gain">Gain: 7.05%</div>
+                            </div>
+                            <div>
+                                <label>TP 2 % Size</label>
+                                <input type="number" class="tp-percent" value="40" min="0" max="100" step="5">
+                            </div>
+                            <div>
+                                <button class="btn-remove-tp" onclick="removeTP(2)">Remove</button>
+                            </div>
+                        </div>
+                        
+                        <div class="tp-row">
+                            <div>
+                                <label>TP 3 Price</label>
+                                <input type="number" class="tp-price" value="45" min="0.0001" step="0.0001">
+                                <div class="percentage-display tp-gain">Gain: 13.35%</div>
+                            </div>
+                            <div>
+                                <label>TP 3 % Size</label>
+                                <input type="number" class="tp-percent" value="30" min="0" max="100" step="5">
+                            </div>
+                            <div>
+                                <button class="btn-remove-tp" onclick="removeTP(3)">Remove</button>
+                            </div>
+                        </div>
                     </div>
                     <button class="btn-add-tp" onclick="addTP()">+ Add Take Profit</button>
                 </div>
@@ -389,10 +344,6 @@
                 </div>
                 
                 <button class="btn-calculate" onclick="calculateRisk()">🎯 Calculate Risk</button>
-
-                <div class="calculation-steps" id="calculationSteps">
-                    <!-- Calculation steps will be populated by JavaScript -->
-                </div>
             </div>
             
             <!-- Results Section -->
@@ -424,22 +375,22 @@
                     <span class="result-value" id="liquidationPrice">-</span>
                 </div>
                 
-                <h3 style="margin-top: 20px; color: #60a5fa; font-size: 16px;">Take Profit Breakdown</h3>
+                <h3 style="margin-top: 20px; color: #60a5fa;">Take Profit Breakdown</h3>
                 <div id="tpResults">
                     <!-- TP results will be populated here -->
                 </div>
                 
-                <h3 style="margin-top: 20px; font-size: 16px;">Risk Meter</h3>
+                <h3 style="margin-top: 20px;">Risk Meter</h3>
                 <div class="risk-meter">
                     <div class="risk-indicator" id="riskIndicator"></div>
                 </div>
-                <div style="display: flex; justify-content: space-between; color: #cbd5e1; font-size: 12px; margin-top: 5px;">
+                <div style="display: flex; justify-content: space-between; color: #cbd5e1; font-size: 0.9rem;">
                     <span>Safe</span>
                     <span>Medium</span>
                     <span>High Risk</span>
                 </div>
                 
-                <h3 style="margin-top: 25px; font-size: 16px;">Safety Checks</h3>
+                <h3 style="margin-top: 30px;">Safety Checks</h3>
                 <div class="safety-checks" id="safetyChecks">
                     <!-- Safety checks will be populated by JavaScript -->
                 </div>
@@ -448,8 +399,262 @@
     </div>
 
     <script>
-        // JavaScript code remains the same as previous version
-        // ... [all the JavaScript functions from previous code]
+        let tpCount = 3;
+
+        // Update percentage displays
+        function updatePercentages() {
+            const entry = parseFloat(document.getElementById('entryPrice').value) || 0;
+            const sl = parseFloat(document.getElementById('stopLoss').value) || 0;
+            
+            if (entry > 0 && sl > 0) {
+                const dropPct = Math.abs(entry - sl) / entry * 100;
+                document.getElementById('dropPercentage').textContent = `Drop: ${dropPct.toFixed(2)}%`;
+            }
+            
+            // Update TP gain percentages
+            document.querySelectorAll('.tp-price').forEach((input, index) => {
+                const tpPrice = parseFloat(input.value) || 0;
+                if (entry > 0 && tpPrice > 0) {
+                    const gainPct = Math.abs(tpPrice - entry) / entry * 100;
+                    const gainDisplay = input.parentElement.querySelector('.tp-gain');
+                    if (gainDisplay) {
+                        gainDisplay.textContent = `Gain: ${gainPct.toFixed(2)}%`;
+                    }
+                }
+            });
+        }
+
+        // Add new TP row
+        function addTP() {
+            tpCount++;
+            const tpSection = document.getElementById('tpSection');
+            const newTP = document.createElement('div');
+            newTP.className = 'tp-row';
+            newTP.innerHTML = `
+                <div>
+                    <label>TP ${tpCount} Price</label>
+                    <input type="number" class="tp-price" value="${40 + tpCount}" min="0.0001" step="0.0001">
+                    <div class="percentage-display tp-gain">Gain: 0%</div>
+                </div>
+                <div>
+                    <label>TP ${tpCount} % Size</label>
+                    <input type="number" class="tp-percent" value="20" min="0" max="100" step="5">
+                </div>
+                <div>
+                    <button class="btn-remove-tp" onclick="removeTP(${tpCount})">Remove</button>
+                </div>
+            `;
+            tpSection.appendChild(newTP);
+            updatePercentages();
+        }
+
+        // Remove TP row
+        function removeTP(id) {
+            if (tpCount > 1) {
+                const tpRow = document.getElementById(`tpRow${id}`);
+                if (tpRow) {
+                    tpRow.remove();
+                    tpCount--;
+                    // Rename remaining TPs
+                    updateTPLabels();
+                }
+            }
+        }
+
+        // Update TP labels after removal
+        function updateTPLabels() {
+            const tpRows = document.querySelectorAll('.tp-row');
+            tpRows.forEach((row, index) => {
+                const newId = index + 1;
+                row.id = `tpRow${newId}`;
+                const labels = row.querySelectorAll('label');
+                const button = row.querySelector('.btn-remove-tp');
+                
+                labels[0].textContent = `TP ${newId} Price`;
+                labels[1].textContent = `TP ${newId} % Size`;
+                button.setAttribute('onclick', `removeTP(${newId})`);
+            });
+        }
+
+        // Input field listeners
+        const inputs = ['balance', 'riskPercent', 'entryPrice', 'stopLoss', 'leverage'];
+        inputs.forEach(id => {
+            document.getElementById(id).addEventListener('input', function() {
+                updatePercentages();
+                calculateRisk();
+            });
+        });
+
+        // TP input listeners
+        document.addEventListener('input', function(e) {
+            if (e.target.classList.contains('tp-price') || e.target.classList.contains('tp-percent')) {
+                updatePercentages();
+                calculateRisk();
+            }
+        });
+
+        function calculateRisk() {
+            // Get input values
+            const balance = parseFloat(document.getElementById('balance').value) || 0;
+            const riskPercent = parseFloat(document.getElementById('riskPercent').value) || 0;
+            const entryPrice = parseFloat(document.getElementById('entryPrice').value) || 0;
+            const stopLoss = parseFloat(document.getElementById('stopLoss').value) || 0;
+            const leverage = parseFloat(document.getElementById('leverage').value) || 1;
+            const positionType = document.getElementById('positionType').value;
+            
+            // Get TP data
+            const tpData = [];
+            let totalPercent = 0;
+            
+            document.querySelectorAll('.tp-row').forEach(row => {
+                const price = parseFloat(row.querySelector('.tp-price').value) || 0;
+                const percent = parseFloat(row.querySelector('.tp-percent').value) || 0;
+                
+                if (price > 0 && percent > 0) {
+                    tpData.push({ price, percent });
+                    totalPercent += percent;
+                }
+            });
+
+            // Adjust percentages if total != 100%
+            if (totalPercent !== 100 && totalPercent > 0) {
+                tpData.forEach(tp => {
+                    tp.percent = (tp.percent / totalPercent) * 100;
+                });
+            }
+
+            // Step 1: Calculate Risk Amount
+            const riskAmount = balance * (riskPercent / 100);
+            
+            // Step 2: Calculate Percentage Drop
+            const dropPercentage = Math.abs(entryPrice - stopLoss) / entryPrice * 100;
+            
+            // Step 3: Calculate Position Size (CORRECTED FORMULA)
+            const positionSize = (riskAmount * 100) / dropPercentage / leverage;
+            
+            // Step 4: Calculate Quantity
+            const quantity = positionSize / entryPrice;
+            
+            // Step 5: Calculate Weighted RR Ratio
+            let totalWeightedRR = 0;
+            const riskDistance = Math.abs(entryPrice - stopLoss);
+            
+            tpData.forEach(tp => {
+                const rewardDistance = Math.abs(tp.price - entryPrice);
+                const rrRatio = rewardDistance / riskDistance;
+                totalWeightedRR += rrRatio * (tp.percent / 100);
+            });
+            
+            const weightedRR = totalWeightedRR.toFixed(2);
+            
+            // Step 6: Calculate Liquidation Price
+            let liquidationPrice;
+            if (positionType === 'long') {
+                liquidationPrice = entryPrice * (1 - (1 / leverage) + 0.005);
+            } else {
+                liquidationPrice = entryPrice * (1 + (1 / leverage) - 0.005);
+            }
+            
+            // Update results
+            document.getElementById('positionSize').textContent = `$${positionSize.toFixed(2)} USDT`;
+            document.getElementById('riskAmount').textContent = `$${riskAmount.toFixed(2)} USDT`;
+            document.getElementById('quantity').textContent = `${quantity.toFixed(3)} coins`;
+            document.getElementById('rrRatio').textContent = `1:${weightedRR}`;
+            document.getElementById('liquidationPrice').textContent = `$${liquidationPrice.toFixed(2)} USDT`;
+            
+            // Update TP Results
+            const tpResults = document.getElementById('tpResults');
+            tpResults.innerHTML = '';
+            
+            tpData.forEach((tp, index) => {
+                const rewardDistance = Math.abs(tp.price - entryPrice);
+                const rrRatio = (rewardDistance / riskDistance).toFixed(2);
+                const tpSize = (tp.percent / 100) * quantity;
+                const profit = tpSize * rewardDistance;
+                
+                const tpResult = document.createElement('div');
+                tpResult.className = 'tp-result';
+                tpResult.innerHTML = `
+                    <strong>TP ${index + 1}: $${tp.price.toFixed(2)}</strong><br>
+                    Size: ${tp.percent}% | RR: 1:${rrRatio}<br>
+                    Profit: $${profit.toFixed(2)} | Coins: ${tpSize.toFixed(3)}
+                `;
+                tpResults.appendChild(tpResult);
+            });
+            
+            // Update risk meter
+            updateRiskMeter(riskPercent);
+            
+            // Update safety checks
+            updateSafetyChecks({
+                riskPercent,
+                rrRatio: parseFloat(weightedRR),
+                leverage,
+                liquidationPrice,
+                entryPrice,
+                stopLoss,
+                positionType,
+                dropPercentage,
+                totalPercent: tpData.reduce((sum, tp) => sum + tp.percent, 0)
+            });
+        }
+        
+        function updateRiskMeter(riskPct) {
+            const indicator = document.getElementById('riskIndicator');
+            let position;
+            
+            if (riskPct <= 2) {
+                position = (riskPct / 2) * 33;
+            } else if (riskPct <= 5) {
+                position = 33 + ((riskPct - 2) / 3) * 33;
+            } else {
+                position = 66 + (Math.min(riskPct - 5, 5) / 5) * 34;
+            }
+            
+            indicator.style.left = `${Math.min(position, 100)}%`;
+        }
+        
+        function updateSafetyChecks(params) {
+            const checksContainer = document.getElementById('safetyChecks');
+            const checks = [
+                {
+                    name: 'Risk per Trade ≤ 2%',
+                    valid: params.riskPercent <= 2,
+                    message: params.riskPercent <= 2 ? 'Good risk management' : 'Risk too high'
+                },
+                {
+                    name: 'RR Ratio ≥ 1.5',
+                    valid: params.rrRatio >= 1.5,
+                    message: params.rrRatio >= 1.5 ? 'Good reward potential' : 'Reward too low'
+                },
+                {
+                    name: 'Leverage Safe',
+                    valid: params.leverage <= 10,
+                    message: params.leverage <= 10 ? 'Leverage acceptable' : 'High leverage risk'
+                },
+                {
+                    name: 'TP Allocation = 100%',
+                    valid: Math.abs(params.totalPercent - 100) < 1,
+                    message: Math.abs(params.totalPercent - 100) < 1 ? 'Proper allocation' : 'Adjust TP sizes'
+                }
+            ];
+            
+            checksContainer.innerHTML = checks.map(check => `
+                <div class="check-item">
+                    <div class="check-icon ${check.valid ? 'check-valid' : 'check-invalid'}">
+                        ${check.valid ? '✓' : '!'}
+                    </div>
+                    <div>
+                        <div>${check.name}</div>
+                        <div style="font-size: 0.8rem; color: #94a3b8;">${check.message}</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        // Initial calculations
+        updatePercentages();
+        calculateRisk();
     </script>
 </body>
 </html>
