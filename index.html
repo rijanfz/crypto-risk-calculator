@@ -308,7 +308,7 @@
                                 <input type="number" class="tp-percent" value="40" min="0" max="100" step="5">
                             </div>
                             <div>
-                                <button class="btn-remove-tp" onclick="removeTP(2)">Remove</button>
+                                <button type="button" class="btn-remove-tp" onclick="removeTP(this)">Remove</button>
                             </div>
                         </div>
                         
@@ -399,176 +399,217 @@
     </div>
 
     <script>
-        let tpCount = 3;
+    let tpCount = 3;
 
-        // Update percentage displays
-        function updatePercentages() {
-            const entry = parseFloat(document.getElementById('entryPrice').value) || 0;
-            const sl = parseFloat(document.getElementById('stopLoss').value) || 0;
-            
-            if (entry > 0 && sl > 0) {
-                const dropPct = Math.abs(entry - sl) / entry * 100;
-                document.getElementById('dropPercentage').textContent = `Drop: ${dropPct.toFixed(2)}%`;
-            }
-            
-            // Update TP gain percentages
-            document.querySelectorAll('.tp-price').forEach((input, index) => {
-                const tpPrice = parseFloat(input.value) || 0;
-                if (entry > 0 && tpPrice > 0) {
-                    const gainPct = Math.abs(tpPrice - entry) / entry * 100;
-                    const gainDisplay = input.parentElement.querySelector('.tp-gain');
-                    if (gainDisplay) {
-                        gainDisplay.textContent = `Gain: ${gainPct.toFixed(2)}%`;
-                    }
+    // Update percentage displays
+    function updatePercentages() {
+        const entry = parseFloat(document.getElementById('entryPrice').value) || 0;
+        const sl = parseFloat(document.getElementById('stopLoss').value) || 0;
+        
+        if (entry > 0 && sl > 0) {
+            const dropPct = Math.abs(entry - sl) / entry * 100;
+            document.getElementById('dropPercentage').textContent = `Drop: ${dropPct.toFixed(2)}%`;
+        }
+        
+        // Update TP gain percentages
+        document.querySelectorAll('.tp-row').forEach((row, index) => {
+            const tpPriceInput = row.querySelector('.tp-price');
+            const tpPrice = parseFloat(tpPriceInput.value) || 0;
+            if (entry > 0 && tpPrice > 0) {
+                const gainPct = Math.abs(tpPrice - entry) / entry * 100;
+                const gainDisplay = row.querySelector('.tp-gain');
+                if (gainDisplay) {
+                    gainDisplay.textContent = `Gain: ${gainPct.toFixed(2)}%`;
                 }
+            }
+        });
+    }
+
+    // Add new TP row
+    function addTP() {
+        tpCount++;
+        const tpSection = document.getElementById('tpSection');
+        const newTP = document.createElement('div');
+        newTP.className = 'tp-row';
+        newTP.setAttribute('data-tp-id', tpCount);
+        newTP.innerHTML = `
+            <div>
+                <label>TP ${tpCount} Price</label>
+                <input type="number" class="tp-price" value="${40 + tpCount}" min="0.0001" step="0.0001">
+                <div class="percentage-display tp-gain">Gain: 0%</div>
+            </div>
+            <div>
+                <label>TP ${tpCount} % Size</label>
+                <input type="number" class="tp-percent" value="20" min="0" max="100" step="5">
+            </div>
+            <div>
+                <button type="button" class="btn-remove-tp" onclick="removeTP(${tpCount})">Remove</button>
+            </div>
+        `;
+        tpSection.appendChild(newTP);
+        
+        // Add event listeners to new inputs
+        const newInputs = newTP.querySelectorAll('.tp-price, .tp-percent');
+        newInputs.forEach(input => {
+            input.addEventListener('input', function() {
+                updatePercentages();
+                calculateRisk();
             });
-        }
+        });
+        
+        updatePercentages();
+        calculateRisk();
+    }
 
-        // Add new TP row
-        function addTP() {
-            tpCount++;
-            const tpSection = document.getElementById('tpSection');
-            const newTP = document.createElement('div');
-            newTP.className = 'tp-row';
-            newTP.innerHTML = `
-                <div>
-                    <label>TP ${tpCount} Price</label>
-                    <input type="number" class="tp-price" value="${40 + tpCount}" min="0.0001" step="0.0001">
-                    <div class="percentage-display tp-gain">Gain: 0%</div>
-                </div>
-                <div>
-                    <label>TP ${tpCount} % Size</label>
-                    <input type="number" class="tp-percent" value="20" min="0" max="100" step="5">
-                </div>
-                <div>
-                    <button class="btn-remove-tp" onclick="removeTP(${tpCount})">Remove</button>
-                </div>
-            `;
-            tpSection.appendChild(newTP);
-            updatePercentages();
-        }
-
-        // Remove TP row
-        function removeTP(id) {
-            if (tpCount > 1) {
-                const tpRow = document.getElementById(`tpRow${id}`);
-                if (tpRow) {
-                    tpRow.remove();
-                    tpCount--;
-                    // Rename remaining TPs
-                    updateTPLabels();
-                }
-            }
-        }
-
-        // Update TP labels after removal
-        function updateTPLabels() {
+    // Remove TP row - FIXED VERSION
+    function removeTP(id) {
+        if (tpCount > 1) {
             const tpRows = document.querySelectorAll('.tp-row');
-            tpRows.forEach((row, index) => {
-                const newId = index + 1;
-                row.id = `tpRow${newId}`;
-                const labels = row.querySelectorAll('label');
-                const button = row.querySelector('.btn-remove-tp');
-                
-                labels[0].textContent = `TP ${newId} Price`;
-                labels[1].textContent = `TP ${newId} % Size`;
-                button.setAttribute('onclick', `removeTP(${newId})`);
+            const tpRowToRemove = Array.from(tpRows).find(row => 
+                parseInt(row.getAttribute('data-tp-id')) === id
+            );
+            
+            if (tpRowToRemove) {
+                tpRowToRemove.remove();
+                tpCount--;
+                updateTPLabels();
+                updatePercentages();
+                calculateRisk();
+            }
+        }
+    }
+
+    // Update TP labels after removal - FIXED VERSION
+    function updateTPLabels() {
+        const tpRows = document.querySelectorAll('.tp-row');
+        tpRows.forEach((row, index) => {
+            const newId = index + 1;
+            row.setAttribute('data-tp-id', newId);
+            const labels = row.querySelectorAll('label');
+            const button = row.querySelector('.btn-remove-tp');
+            const priceInput = row.querySelector('.tp-price');
+            const percentInput = row.querySelector('.tp-percent');
+            
+            if (labels[0]) labels[0].textContent = `TP ${newId} Price`;
+            if (labels[1]) labels[1].textContent = `TP ${newId} % Size`;
+            if (button) button.setAttribute('onclick', `removeTP(${newId})`);
+        });
+    }
+
+    // Initialize TP rows with data attributes
+    function initializeTPRows() {
+        document.querySelectorAll('.tp-row').forEach((row, index) => {
+            row.setAttribute('data-tp-id', index + 1);
+        });
+    }
+
+    // Input field listeners
+    const inputs = ['balance', 'riskPercent', 'entryPrice', 'stopLoss', 'leverage'];
+    inputs.forEach(id => {
+        const element = document.getElementById(id);
+        if (element) {
+            element.addEventListener('input', function() {
+                updatePercentages();
+                calculateRisk();
             });
         }
+    });
 
-        // Input field listeners
-        const inputs = ['balance', 'riskPercent', 'entryPrice', 'stopLoss', 'leverage'];
-        inputs.forEach(id => {
-            document.getElementById(id).addEventListener('input', function() {
-                updatePercentages();
-                calculateRisk();
-            });
-        });
+    // TP input listeners
+    document.addEventListener('input', function(e) {
+        if (e.target.classList.contains('tp-price') || e.target.classList.contains('tp-percent')) {
+            updatePercentages();
+            calculateRisk();
+        }
+    });
 
-        // TP input listeners
-        document.addEventListener('input', function(e) {
-            if (e.target.classList.contains('tp-price') || e.target.classList.contains('tp-percent')) {
-                updatePercentages();
-                calculateRisk();
+    // Position type listener
+    document.getElementById('positionType').addEventListener('change', calculateRisk);
+
+    function calculateRisk() {
+        // Get input values
+        const balance = parseFloat(document.getElementById('balance').value) || 0;
+        const riskPercent = parseFloat(document.getElementById('riskPercent').value) || 0;
+        const entryPrice = parseFloat(document.getElementById('entryPrice').value) || 0;
+        const stopLoss = parseFloat(document.getElementById('stopLoss').value) || 0;
+        const leverage = parseFloat(document.getElementById('leverage').value) || 1;
+        const positionType = document.getElementById('positionType').value;
+        
+        // Get TP data
+        const tpData = [];
+        let totalPercent = 0;
+        
+        document.querySelectorAll('.tp-row').forEach(row => {
+            const priceInput = row.querySelector('.tp-price');
+            const percentInput = row.querySelector('.tp-percent');
+            const price = parseFloat(priceInput?.value) || 0;
+            const percent = parseFloat(percentInput?.value) || 0;
+            
+            if (price > 0 && percent > 0) {
+                tpData.push({ price, percent });
+                totalPercent += percent;
             }
         });
 
-        function calculateRisk() {
-            // Get input values
-            const balance = parseFloat(document.getElementById('balance').value) || 0;
-            const riskPercent = parseFloat(document.getElementById('riskPercent').value) || 0;
-            const entryPrice = parseFloat(document.getElementById('entryPrice').value) || 0;
-            const stopLoss = parseFloat(document.getElementById('stopLoss').value) || 0;
-            const leverage = parseFloat(document.getElementById('leverage').value) || 1;
-            const positionType = document.getElementById('positionType').value;
-            
-            // Get TP data
-            const tpData = [];
-            let totalPercent = 0;
-            
-            document.querySelectorAll('.tp-row').forEach(row => {
-                const price = parseFloat(row.querySelector('.tp-price').value) || 0;
-                const percent = parseFloat(row.querySelector('.tp-percent').value) || 0;
-                
-                if (price > 0 && percent > 0) {
-                    tpData.push({ price, percent });
-                    totalPercent += percent;
-                }
+        // Adjust percentages if total != 100%
+        if (totalPercent !== 100 && totalPercent > 0 && tpData.length > 0) {
+            tpData.forEach(tp => {
+                tp.percent = (tp.percent / totalPercent) * 100;
             });
+            totalPercent = 100;
+        }
 
-            // Adjust percentages if total != 100%
-            if (totalPercent !== 100 && totalPercent > 0) {
-                tpData.forEach(tp => {
-                    tp.percent = (tp.percent / totalPercent) * 100;
-                });
-            }
-
-            // Step 1: Calculate Risk Amount
-            const riskAmount = balance * (riskPercent / 100);
-            
-            // Step 2: Calculate Percentage Drop
-            const dropPercentage = Math.abs(entryPrice - stopLoss) / entryPrice * 100;
-            
-            // Step 3: Calculate Position Size (CORRECTED FORMULA)
-            const positionSize = (riskAmount * 100) / dropPercentage / leverage;
-            
-            // Step 4: Calculate Quantity
-            const quantity = positionSize / entryPrice;
-            
-            // Step 5: Calculate Weighted RR Ratio
-            let totalWeightedRR = 0;
-            const riskDistance = Math.abs(entryPrice - stopLoss);
-            
+        // Step 1: Calculate Risk Amount
+        const riskAmount = balance * (riskPercent / 100);
+        
+        // Step 2: Calculate Percentage Drop
+        const dropPercentage = entryPrice > 0 ? Math.abs(entryPrice - stopLoss) / entryPrice * 100 : 0;
+        
+        // Step 3: Calculate Position Size (CORRECTED FORMULA)
+        const positionSize = dropPercentage > 0 ? (riskAmount * 100) / dropPercentage / leverage : 0;
+        
+        // Step 4: Calculate Quantity
+        const quantity = entryPrice > 0 ? positionSize / entryPrice : 0;
+        
+        // Step 5: Calculate Weighted RR Ratio
+        let totalWeightedRR = 0;
+        const riskDistance = Math.abs(entryPrice - stopLoss);
+        
+        if (riskDistance > 0) {
             tpData.forEach(tp => {
                 const rewardDistance = Math.abs(tp.price - entryPrice);
                 const rrRatio = rewardDistance / riskDistance;
                 totalWeightedRR += rrRatio * (tp.percent / 100);
             });
-            
-            const weightedRR = totalWeightedRR.toFixed(2);
-            
-            // Step 6: Calculate Liquidation Price
-            let liquidationPrice;
+        }
+        
+        const weightedRR = totalWeightedRR > 0 ? totalWeightedRR.toFixed(2) : "0";
+        
+        // Step 6: Calculate Liquidation Price
+        let liquidationPrice = 0;
+        if (entryPrice > 0 && leverage > 0) {
             if (positionType === 'long') {
                 liquidationPrice = entryPrice * (1 - (1 / leverage) + 0.005);
             } else {
                 liquidationPrice = entryPrice * (1 + (1 / leverage) - 0.005);
             }
-            
-            // Update results
-            document.getElementById('positionSize').textContent = `$${positionSize.toFixed(2)} USDT`;
-            document.getElementById('riskAmount').textContent = `$${riskAmount.toFixed(2)} USDT`;
-            document.getElementById('quantity').textContent = `${quantity.toFixed(3)} coins`;
-            document.getElementById('rrRatio').textContent = `1:${weightedRR}`;
-            document.getElementById('liquidationPrice').textContent = `$${liquidationPrice.toFixed(2)} USDT`;
-            
-            // Update TP Results
-            const tpResults = document.getElementById('tpResults');
-            tpResults.innerHTML = '';
-            
+        }
+        
+        // Update results
+        document.getElementById('positionSize').textContent = `$${positionSize.toFixed(2)} USDT`;
+        document.getElementById('riskAmount').textContent = `$${riskAmount.toFixed(2)} USDT`;
+        document.getElementById('quantity').textContent = `${quantity.toFixed(3)} coins`;
+        document.getElementById('rrRatio').textContent = `1:${weightedRR}`;
+        document.getElementById('liquidationPrice').textContent = `$${liquidationPrice.toFixed(2)} USDT`;
+        
+        // Update TP Results
+        const tpResults = document.getElementById('tpResults');
+        tpResults.innerHTML = '';
+        
+        if (tpData.length > 0) {
             tpData.forEach((tp, index) => {
                 const rewardDistance = Math.abs(tp.price - entryPrice);
-                const rrRatio = (rewardDistance / riskDistance).toFixed(2);
+                const rrRatio = riskDistance > 0 ? (rewardDistance / riskDistance).toFixed(2) : "0";
                 const tpSize = (tp.percent / 100) * quantity;
                 const profit = tpSize * rewardDistance;
                 
@@ -576,85 +617,108 @@
                 tpResult.className = 'tp-result';
                 tpResult.innerHTML = `
                     <strong>TP ${index + 1}: $${tp.price.toFixed(2)}</strong><br>
-                    Size: ${tp.percent}% | RR: 1:${rrRatio}<br>
+                    Size: ${Math.round(tp.percent)}% | RR: 1:${rrRatio}<br>
                     Profit: $${profit.toFixed(2)} | Coins: ${tpSize.toFixed(3)}
                 `;
                 tpResults.appendChild(tpResult);
             });
-            
-            // Update risk meter
-            updateRiskMeter(riskPercent);
-            
-            // Update safety checks
-            updateSafetyChecks({
-                riskPercent,
-                rrRatio: parseFloat(weightedRR),
-                leverage,
-                liquidationPrice,
-                entryPrice,
-                stopLoss,
-                positionType,
-                dropPercentage,
-                totalPercent: tpData.reduce((sum, tp) => sum + tp.percent, 0)
-            });
+        } else {
+            tpResults.innerHTML = '<div class="tp-result">No take profit targets set</div>';
         }
         
-        function updateRiskMeter(riskPct) {
-            const indicator = document.getElementById('riskIndicator');
-            let position;
-            
-            if (riskPct <= 2) {
-                position = (riskPct / 2) * 33;
-            } else if (riskPct <= 5) {
-                position = 33 + ((riskPct - 2) / 3) * 33;
-            } else {
-                position = 66 + (Math.min(riskPct - 5, 5) / 5) * 34;
+        // Update risk meter
+        updateRiskMeter(riskPercent);
+        
+        // Update safety checks
+        updateSafetyChecks({
+            riskPercent,
+            rrRatio: parseFloat(weightedRR) || 0,
+            leverage,
+            liquidationPrice,
+            entryPrice,
+            stopLoss,
+            positionType,
+            dropPercentage,
+            totalPercent: tpData.reduce((sum, tp) => sum + tp.percent, 0)
+        });
+    }
+    
+    function updateRiskMeter(riskPct) {
+        const indicator = document.getElementById('riskIndicator');
+        if (!indicator) return;
+        
+        let position;
+        
+        if (riskPct <= 2) {
+            position = (riskPct / 2) * 33;
+        } else if (riskPct <= 5) {
+            position = 33 + ((riskPct - 2) / 3) * 33;
+        } else {
+            position = 66 + (Math.min(riskPct - 5, 5) / 5) * 34;
+        }
+        
+        indicator.style.left = `${Math.min(position, 100)}%`;
+    }
+    
+    function updateSafetyChecks(params) {
+        const checksContainer = document.getElementById('safetyChecks');
+        if (!checksContainer) return;
+        
+        const checks = [
+            {
+                name: 'Risk per Trade ≤ 2%',
+                valid: params.riskPercent <= 2,
+                message: params.riskPercent <= 2 ? 'Good risk management' : 'Risk too high'
+            },
+            {
+                name: 'RR Ratio ≥ 1.5',
+                valid: params.rrRatio >= 1.5,
+                message: params.rrRatio >= 1.5 ? 'Good reward potential' : 'Reward too low'
+            },
+            {
+                name: 'Leverage Safe',
+                valid: params.leverage <= 10,
+                message: params.leverage <= 10 ? 'Leverage acceptable' : 'High leverage risk'
+            },
+            {
+                name: 'TP Allocation = 100%',
+                valid: Math.abs(params.totalPercent - 100) < 1,
+                message: Math.abs(params.totalPercent - 100) < 1 ? 'Proper allocation' : 'Adjust TP sizes'
             }
-            
-            indicator.style.left = `${Math.min(position, 100)}%`;
-        }
+        ];
         
-        function updateSafetyChecks(params) {
-            const checksContainer = document.getElementById('safetyChecks');
-            const checks = [
-                {
-                    name: 'Risk per Trade ≤ 2%',
-                    valid: params.riskPercent <= 2,
-                    message: params.riskPercent <= 2 ? 'Good risk management' : 'Risk too high'
-                },
-                {
-                    name: 'RR Ratio ≥ 1.5',
-                    valid: params.rrRatio >= 1.5,
-                    message: params.rrRatio >= 1.5 ? 'Good reward potential' : 'Reward too low'
-                },
-                {
-                    name: 'Leverage Safe',
-                    valid: params.leverage <= 10,
-                    message: params.leverage <= 10 ? 'Leverage acceptable' : 'High leverage risk'
-                },
-                {
-                    name: 'TP Allocation = 100%',
-                    valid: Math.abs(params.totalPercent - 100) < 1,
-                    message: Math.abs(params.totalPercent - 100) < 1 ? 'Proper allocation' : 'Adjust TP sizes'
-                }
-            ];
-            
-            checksContainer.innerHTML = checks.map(check => `
-                <div class="check-item">
-                    <div class="check-icon ${check.valid ? 'check-valid' : 'check-invalid'}">
-                        ${check.valid ? '✓' : '!'}
-                    </div>
-                    <div>
-                        <div>${check.name}</div>
-                        <div style="font-size: 0.8rem; color: #94a3b8;">${check.message}</div>
-                    </div>
+        checksContainer.innerHTML = checks.map(check => `
+            <div class="check-item">
+                <div class="check-icon ${check.valid ? 'check-valid' : 'check-invalid'}">
+                    ${check.valid ? '✓' : '!'}
                 </div>
-            `).join('');
-        }
-        
-        // Initial calculations
+                <div>
+                    <div>${check.name}</div>
+                    <div style="font-size: 0.8rem; color: #94a3b8;">${check.message}</div>
+                </div>
+            </div>
+        `).join('');
+    }
+    
+    // Initialize everything when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+        initializeTPRows();
         updatePercentages();
         calculateRisk();
-    </script>
+    });
+
+    // Also initialize if DOM is already loaded
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeTPRows();
+            updatePercentages();
+            calculateRisk();
+        });
+    } else {
+        initializeTPRows();
+        updatePercentages();
+        calculateRisk();
+    }
+</script>
 </body>
 </html>
